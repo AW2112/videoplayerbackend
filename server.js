@@ -5,9 +5,7 @@ const app = express();
 const port = 3000;
 
 app.use(cors());
-app.get("/", (req, res) => {
-    res.send("hi");
-})
+
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -43,7 +41,9 @@ app.get('/api/videos', (req, res) => {
       res.json(files);
     });
   });
-  
+  app.get("/", (req, res) => {
+    res.send("hi");
+})
   app.listen(port, () => {
     console.log(`Server is listening on port ${port}`);
   });
