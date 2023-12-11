@@ -12,7 +12,7 @@ app.use(cors());
 aws.config.update({
   accessKeyId: 'AKIARJKQCTFPFUMMTRUT',
   secretAccessKey: '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',
-  region: 'Global',
+  region: 'Europe (Stockholm) eu-north-1',
 });
 
 const s3 = new aws.S3();
