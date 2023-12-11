@@ -1,25 +1,32 @@
 const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
+const aws = require('aws-sdk');
+const multerS3 = require('multer-s3');
 const app = express();
 const port = 3000;
 
 app.use(cors());
 
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
-  },
+// Configure AWS
+aws.config.update({
+  accessKeyId: 'AKIARJKQCTFPFUMMTRUT',
+  secretAccessKey: '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',
+  region: 'Global',
 });
 
-const upload = multer({ storage });
+const s3 = new aws.S3();
 
-// Serve uploaded files statically from the /uploads route
-app.use('/uploads', express.static('uploads'));
+const upload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: 'videosstoragetest',
+    acl: 'public-read',
+    key: function (req, file, cb) {
+      cb(null, Date.now() + '-' + file.originalname);
+    },
+  }),
+});
 
 app.post('/upload', upload.single('videoFile'), (req, res) => {
   if (!req.file) {
@@ -29,21 +36,24 @@ app.post('/upload', upload.single('videoFile'), (req, res) => {
 });
 
 app.get('/api/videos', (req, res) => {
-    // Use the 'fs' module to read the list of files in the 'uploads' directory
-    const fs = require('fs');
-    const directoryPath = __dirname + '/uploads';
-  
-    fs.readdir(directoryPath, (err, files) => {
-      if (err) {
-        return res.status(500).send('Error reading the directory.');
-      }
-  
-      res.json(files);
-    });
+  // You can still use the 'fs' module to read the list of files in the 'uploads' directory,
+  // but it won't work as a storage mechanism for Vercel. Consider using a database or cloud storage.
+  const fs = require('fs');
+  const directoryPath = __dirname + '/uploads';
+
+  fs.readdir(directoryPath, (err, files) => {
+    if (err) {
+      return res.status(500).send('Error reading the directory.');
+    }
+
+    res.json(files);
   });
-  app.get("/", (req, res) => {
-    res.send("hi");
-})
-  app.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
-  });
+});
+
+app.get('/', (req, res) => {
+  res.send('hi');
+});
+
+app.listen(port, () => {
+  console.log(`Server is listening on port ${port}`);
+});
